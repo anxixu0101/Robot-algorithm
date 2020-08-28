@@ -1,0 +1,52 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Aug 28 12:33:00 2020
+
+@author: anxixu
+"""
+'''
+整体的代码其实只是用到了卡尔曼的位置预估，
+根据实际情况确定方差之后，得到卡尔曼增益并代入位置预估公式
+'''
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+t=np.linspace(1,100,100) #1到100 生成100个
+a=0.5
+position=(a*t**2)/2 # a是加速度 position其实就是实际值
+
+'''
+来点噪声
+'''
+noise = np.random.normal(0, 30, 100)
+
+#加一起
+position_noise=position+noise# 观测值
+
+plt.plot(t,position,label='real value')
+plt.plot(t,position_noise,label='measure value')
+
+
+#初始估计位置设置一下
+predicts=[position_noise[0]]
+position_predict=predicts[0]
+
+#设置方差
+predict_var=0
+odo=100**2 #位置仪器方差，可以通过调试来让预测更加准确
+v_std=100
+for i in range(1,t.shape[0]):
+    dv=(position[i]-position[i-1])+np.random.normal(0,50) #陀螺仪读出的速度数据
+    position_predict=position_predict+dv #由于只能是线性KF，所以位置更新只能相加
+    predict_var+=v_std**2 #更新预测数据的方差
+    #进行卡尔曼滤波 odo/(predict_var+odo)就是卡尔曼增益
+    position_predict=position_predict*odo/(predict_var+odo)+position_noise[i]*predict_var/(predict_var+odo)
+    
+    #更新
+    predict_var=(predict_var*odo)/(predict_var+odo)**2
+    predicts.append(position_predict)
+    
+plt.plot(t,predicts,label='kaerman position')
+plt.legend()
+plt.show()
