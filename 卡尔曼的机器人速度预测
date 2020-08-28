@@ -1,0 +1,87 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Aug 28 11:13:22 2020
+
+@author: anxixu
+"""
+
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+import numpy
+ 
+
+'''
+生成带噪声的传感器观测值Z,代表传感器返回的数据
+机器人每次移动距离为5，观测值每次增长5，也就是速度为5
+最后卡尔曼滤波会预测到速度这个值
+
+'''
+
+Z_raw=numpy.zeros(shape=(250,1))
+for t in range(0,100):
+    Z_raw[t]=5*t # 就是位置的值
+# 创建一个均值为0，方差为1的高斯噪声，共有500个samples，精确到小数点后两位
+noise = np.round(np.random.normal(0, 1, 250), 2)
+# 将z的观测值和噪声相加
+Z = np.mat(Z_raw.T) + np.mat(noise)
+
+ 
+
+'''
+定义状态向量X的初始状态
+X中包含两个状态变量：位置和速度，二者都被初始化为0，且二者都用标量表示
+'''
+X = np.mat([[0,], [0,]])
+
+
+
+'''
+定义初始状态协方差矩阵P
+'''
+P = np.mat([[1, 0], [0, 1]])
+
+
+
+'''
+定义状态转移矩阵F，假设每秒钟采一次样，所以delta_t = 1
+'''
+F = np.mat([[1, 1], [0, 1]])
+
+
+
+'''
+定义状态转移协方差矩阵Q
+'''
+Q = np.mat([[0.0001, 0], [0, 0.0001]])
+
+
+
+'''
+定义观测矩阵H
+'''
+H = np.mat([1, 0])
+
+
+
+'''
+定义观测噪声协方差R
+'''
+R = np.mat([1])
+ 
+
+
+'''
+卡尔曼滤波算法的预测和更新过程
+'''
+for i in range(100):
+    x_predict = F * X#demo中没有引入控制矩阵B 状态转移矩阵*系统状态
+    p_predict = F * P * F.T + Q #k时刻的先验估计协方差
+    K = p_predict * H.T / (H * p_predict * H.T + R) # 求卡尔曼增益
+    X = x_predict + K *(Z[0, i] - H * x_predict)# k时刻的先验状态估计值
+    P = (np.eye(2) - K * H) * p_predict# 更新K时刻的后验估计协方差
+    print(X)
+    plt.plot(X[0, 0], X[1, 0], 'ro', markersize = 4)
+    
+plt.show()
