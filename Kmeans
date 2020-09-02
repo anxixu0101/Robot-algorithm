@@ -1,0 +1,98 @@
+%% kmeans复现一下
+%% 作者：安希旭
+%% 算法精神反正是体现了，由于时间紧张，我没有引入庞大的数据集，所以结果看起来很山寨
+%% 我该换个电脑了，数据稍微多一点就跑不动了
+clc;
+clear;
+%% 来几个点吧
+number_1=[1 1;
+    1.5 1;
+    1.5 2;
+    1.5 1.5;
+    2 2;
+    2.1 2;
+    2.2 2;
+    3 3;
+    3.5 3;
+    4 4;
+    4.5 3;
+    2 3;
+    3 2;
+   
+];
+
+number_2=[10 10;
+    13 13;
+    15 15;
+    11 10;
+    11 11;
+    12 11;
+    11 12;
+    12 12;
+    12.5 12.1;
+    16 16;
+    15 16;
+    ];
+number=[number_1;number_2];
+%% 分成两个部落
+k=2; %给定的类别数目
+Point_1=round(rand(1,2)*20);%% 随机生成两个部落点
+Point_2=round(rand(1,2)*20);
+
+zhixin_1(1,:)=Point_1;
+num=2;
+while num<5
+for i=1:length(number)
+    Distance_1(i,:)=distant(number(i,:),Point_1);
+    Distance_2(i,:)=distant(number(i,:),Point_2);
+    if Distance_1(i,:)>Distance_2(i,:)
+        Julei_2(i,:)=number(i,:);%% 属于聚类2
+        Julei_2(all(Julei_2==0,2),:)=[];
+    end
+    
+    if Distance_1(i,:)<Distance_2(i,:)
+        Julei_1(i,:)=number(i,:);%% 属于聚类1
+        Julei_1(all(Julei_1==0,2),:)=[];
+    end
+end
+%% 选取新的质心
+%% 聚类1的新质心
+X_1=sum(Julei_1);
+X_2=sum(Julei_2);
+Centerx_1=X_1(1)/length(Julei_1);%% 质心1的横坐标
+Centery_1=X_1(2)/length(Julei_1);%% 质心1的纵坐标
+
+Centerx_2=X_2(1)/length(Julei_2);
+Centery_2=X_2(2)/length(Julei_2);
+
+zhixin_1(num,:)=[Centerx_1,Centery_1];
+zhixin_2(num,:)=[Centerx_2,Centery_2];
+%% 计算新旧质心之间的距离
+Standard_distance_1=distant(zhixin_1(num,:),zhixin_1(num-1,:));
+Standard_distance_2=distant(zhixin_2(num,:),zhixin_2(num-1,:));
+if (Standard_distance_1<=1)&& (Standard_distance_2<=1)
+    break;
+end
+   num=num+1; 
+end
+
+figure(1);
+
+plot(number_1(:,1),number_1(:,2),'ro',number_2(:,1),number_2(:,2),'bo');
+hold on;
+plot(zhixin_1(length(zhixin_1),1),zhixin_1(length(zhixin_1),2),'k*',zhixin_2(length(zhixin_2),1),zhixin_2(length(zhixin_2),2),'k*');
+% hold on;
+% plot(number_2(:,1),number_2(:,2),'bo');
+axis([0,20,0,20]);
+
+
+
+
+
+%% 求两点距离函数
+function a=distant(X,Y)
+
+a= sqrt((X(1,1)-Y(1,1))^2+(X(1,2)-Y(1,2))^2);
+
+
+end
